@@ -2,7 +2,7 @@ package main
 
 import "log"
 import "flag"
-import "ai/neural"
+import "github.com/tatrix/ai/neural"
 
 var debug = false
 
