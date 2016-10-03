@@ -2,8 +2,12 @@
 #include <vector>
 #include <random>
 #include <unistd.h>
+#include <SFML/Graphics.hpp>
 
 using namespace std;
+
+random_device rd;
+mt19937 gen(rd());
 
 enum class Cell { dead, alive };
 
@@ -52,7 +56,6 @@ public:
         }
 };
 
-
 class Field {
         int w;
         int h;
@@ -60,10 +63,14 @@ class Field {
 public:
         friend ostream& operator<<(ostream& os, const Field& f);
         Field(int w, int h): w(w), h(h) {
-                cells.reserve(h);
+                cells.resize(h);
                 for (auto y = 0; y < h; y++) {
-                        cells[y].reserve(w);
+                        cells[y].resize(w);
                 }
+        }
+
+        const vector<vector<Cell>> get_cells() {
+                return cells;
         }
 
         void add_pattern(Pattern pat, Point left_top) {
@@ -74,8 +81,7 @@ public:
         }
 
         void randomize() {
-                random_device rd;
-                mt19937 gen(rd());
+                cout << cells.size();
                 for (auto y = 0; y < h; y++) {
                         for (auto x = 0; x < w; x++) {
                                 cells[y][x] = (gen() % 2 == 0) ? Cell::dead : Cell::alive;
@@ -174,6 +180,10 @@ public:
         void randomize() {
                 current_field().randomize();
         }
+
+        const vector<vector<Cell>> get_cells() {
+                return current_field().get_cells();
+        }
 };
 
 ostream& operator<<(ostream& os, const Game& g) {
@@ -184,7 +194,7 @@ void clearscr() {
         cout << "\x1B[2J\x1B[H";
 }
 
-int main()
+int text_main()
 {
         cout << "Wellcome to the  Game of life!" << endl;
         Game g(32, 16);
@@ -221,4 +231,64 @@ int main()
                         return 0;
                 }
         }
+}
+
+
+int randc() {
+        return 75 + gen() % 100;
+}
+
+void draw(sf::RenderWindow& window, Game& g, const int size) {
+        sf::RectangleShape rectangle(sf::Vector2f(size, size));
+        auto cells = g.get_cells();
+        for (unsigned int y = 0; y < cells.size(); y++) {
+                auto row = cells[y];
+                for (unsigned int x = 0; x < row.size(); x++) {
+                        if (row[x] == Cell::dead)
+                                continue;
+                        rectangle.setFillColor(sf::Color(randc(), randc(), randc()));
+                        rectangle.setPosition(x * size, y * size);
+                        window.draw(rectangle);
+                }
+        }
+}
+
+int sfml_main() {
+        const int w = 640;
+        const int h = 480;
+        const int size = 5;
+        sf::RenderWindow window(sf::VideoMode(w, h), "The game of life!");
+        window.setVerticalSyncEnabled(true);
+        Game g(w/size, h/size);
+        g.randomize();
+
+        sf::Clock clock;
+        while (window.isOpen())
+        {
+                sf::Event event;
+                while (window.pollEvent(event))
+                {
+                        if (event.type == sf::Event::Closed)
+                                window.close();
+                }
+
+                g.next_generation();
+
+                window.clear();
+                draw(window, g, size);
+                window.display();
+
+                sf::Time elapsed = clock.restart();
+                auto diff = sf::milliseconds(500) - elapsed;
+                if (diff > sf::milliseconds(0))
+                        sf::sleep(diff);
+
+        }
+
+        return 0;
+}
+
+int main(int argc, char**)
+{
+        return (argc > 1) ? text_main() : sfml_main();
 }
