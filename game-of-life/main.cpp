@@ -1,8 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <random>
-#include <unistd.h>
+#include <cmath>
 #include <SFML/Graphics.hpp>
+
+#ifndef __WIN32__
+#include <unistd.h>
+#endif
 
 using namespace std;
 
@@ -190,6 +194,8 @@ ostream& operator<<(ostream& os, const Game& g) {
         return os << const_cast<Game&>(g).current_field();
 }
 
+#ifdef __WIN32__
+
 void clearscr() {
         cout << "\x1B[2J\x1B[H";
 }
@@ -233,9 +239,15 @@ int text_main()
         }
 }
 
+#endif
 
-int randc() {
-        return 75 + gen() % 100;
+const sf::Color color(const int x, const int y) {
+        const int base = 50;
+        const int high = 100;
+        const int r = base + int(sin(x) * high) % high;
+        const int g = base + int(cos(y) * high) % high;
+        const int b = base + int(tan(x * y) * 255)  % high;
+        return sf::Color(r, g, b);
 }
 
 void draw(sf::RenderWindow& window, Game& g, const int size) {
@@ -246,7 +258,7 @@ void draw(sf::RenderWindow& window, Game& g, const int size) {
                 for (unsigned int x = 0; x < row.size(); x++) {
                         if (row[x] == Cell::dead)
                                 continue;
-                        rectangle.setFillColor(sf::Color(randc(), randc(), randc()));
+                        rectangle.setFillColor(color(x, y));
                         rectangle.setPosition(x * size, y * size);
                         window.draw(rectangle);
                 }
@@ -279,7 +291,7 @@ int sfml_main() {
                 window.display();
 
                 sf::Time elapsed = clock.restart();
-                auto diff = sf::milliseconds(500) - elapsed;
+                auto diff = sf::milliseconds(100) - elapsed;
                 if (diff > sf::milliseconds(0))
                         sf::sleep(diff);
 
@@ -288,7 +300,17 @@ int sfml_main() {
         return 0;
 }
 
+#ifdef __WIN32__
+
 int main(int argc, char**)
 {
         return (argc > 1) ? text_main() : sfml_main();
 }
+
+#else
+
+int main() {
+        sfml_main();
+}
+
+#endif
