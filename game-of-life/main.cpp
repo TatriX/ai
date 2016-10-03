@@ -194,7 +194,7 @@ ostream& operator<<(ostream& os, const Game& g) {
         return os << const_cast<Game&>(g).current_field();
 }
 
-#ifdef __WIN32__
+#ifndef __WIN32__
 
 void clearscr() {
         cout << "\x1B[2J\x1B[H";
@@ -300,7 +300,7 @@ int sfml_main() {
         return 0;
 }
 
-#ifdef __WIN32__
+#ifndef __WIN32__
 
 int main(int argc, char**)
 {
