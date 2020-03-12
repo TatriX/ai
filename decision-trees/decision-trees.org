@@ -1,0 +1,10 @@
+# -*- org-confirm-babel-evaluate: nil; -*-
+#+TITLE: Decision trees
+#+STARTUP: showall
+* Load images
+#+begin_src zsh :results file graphics
+cargo run
+#+end_src
+
+#+RESULTS:
+[[file:target/output.png]]
